@@ -1,0 +1,73 @@
+#! /usr/bin/env python
+# -*- coding: utf-8 -*-
+
+import gtk
+import cairo
+import pango
+import pangocairo
+import os
+import re
+
+class LyricsWindow(gtk.Window):
+    
+    def __init__(self):
+        gtk.Window.__init__(self)
+        
+        self.set_colormap(gtk.gdk.Screen().get_rgba_colormap())
+        
+        self.set_decorated(False)
+        self.set_position(gtk.WIN_POS_CENTER)
+        self.set_size_request(1920, 1080)
+        self.connect("destroy", gtk.main_quit)
+        self.connect("expose-event", self.on_expose_event) 
+        
+        self.show_all()
+        gtk.main()
+        
+    def create_surface(self):    
+        if os.path.exists("/tmp/baidufm.lrc"):
+            lrc_data = open("/tmp/baidufm.lrc").readlines()
+            lrc_data_l = re.sub('\[.*\]', '', ''.join(lrc_data[:27]))
+            lrc_data_r = re.sub('\[.*\]', '', ''.join(lrc_data[27:]))
+        else:
+            lrc_data_l = "No Lyric"
+            lrc_data_r = ""
+        surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, 1920, 1080)
+        cr = cairo.Context(surface)
+        ctx = pangocairo.CairoContext(cr)
+        layout = ctx.create_layout()
+        layout.set_font_description(pango.FontDescription("Kelvin Regular 24"))
+        layout.set_text(lrc_data_l)
+        ctx.move_to(80.0, 20.0)
+        ctx.set_source_rgb(0.9, 0.9, 0.9)
+        ctx.update_layout(layout)
+        ctx.layout_path(layout)
+        ctx.stroke()  # 描边效果
+        cr = cairo.Context(surface)
+        ctx = pangocairo.CairoContext(cr)
+        layout = ctx.create_layout()
+        layout.set_font_description(pango.FontDescription("Kelvin Regular 24"))
+        layout.set_text(lrc_data_r)
+        ctx.move_to(1040.0, 20.0)
+        ctx.set_source_rgb(0.9, 0.9, 0.9)
+        ctx.update_layout(layout)
+        ctx.layout_path(layout)
+        ctx.stroke()  # 描边效果
+        return surface
+            
+    def on_expose_event(self, widget, event):
+        cr = widget.window.cairo_create()
+        
+        # 清空窗口上的内容。
+        cr.set_source_rgba(1.0, 1.0, 1.0, 0.0) 
+        cr.set_operator(cairo.OPERATOR_SOURCE)
+        cr.paint()
+        
+        cr.set_operator(cairo.OPERATOR_OVER)
+        cr.set_source_surface(self.create_surface())
+        cr.paint()
+        
+        return True
+    
+if __name__ == "__main__":    
+    LyricsWindow()

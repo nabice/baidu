@@ -1,0 +1,62 @@
+#!/usr/bin/env python
+#coding:utf8
+import re
+import urllib2
+import sys
+import json
+import os
+
+FLACPATH = "/home/nabice/Music/flac/"
+def usage():
+    sys.stderr.write("Usage: "+__file__+"  SONGID [OPTION]\n")
+    sys.stderr.write("   -u    print mp3 url only\n")
+    sys.stderr.write("Report bugs to <nabice@163.com>\n")
+    sys.exit(1)
+if len(sys.argv) != 2 and len(sys.argv) != 3:
+    usage()
+if not re.match("\d+$", sys.argv[1]):
+    usage()
+else:
+    songid = sys.argv[1]
+if len(sys.argv) == 3 and sys.argv[2] == '-u':
+    filetype = 'mp3'
+else:
+    filetype = 'flac'
+result = urllib2.urlopen("http://music.baidu.com/data/music/fmlink?songIds="+songid+"&type="+filetype)
+data = json.loads(result.read())
+sys.stderr.write("SongID:"+songid+"\n")
+if data['errorCode'] == 22000:
+    songLink = data['data']['songList'][0]['songLink']
+else:
+    songLink = ''
+if not songLink:
+    sys.stderr.write("No flac found\n")
+    sys.exit(1)
+if len(sys.argv) == 3 and sys.argv[2] == '-u':
+    if songLink:
+        print songLink
+    sys.exit(0)
+filename = FLACPATH + data['data']['songList'][0]['songName'] + "_" + data['data']['songList'][0]['artistName'] + ".flac"
+sys.stderr.write(songLink+"\n")
+songdata = urllib2.urlopen(songLink)
+header = songdata.info()
+sys.stderr.write(filename+"\n")
+print filename.encode("utf8")
+if os.path.exists(filename):
+    sys.stderr.write("File already exists\n")
+    sys.exit(1);
+filesize = int(header.getheader("Content-Length"))
+flacfile = open(filename, "w")
+file_size_dl = 0
+block_sz = 8192
+while True:
+    buffer = songdata.read(block_sz)
+    if not buffer:
+        break
+    file_size_dl += len(buffer)
+    flacfile.write(buffer)
+    status = r"%10d/%d  [%3.2f%%]" % (file_size_dl, filesize, file_size_dl * 100. / filesize)
+    status = status + chr(8)*(len(status)+1)
+    sys.stderr.write(status)
+sys.stderr.write("\n")
+flacfile.close()
