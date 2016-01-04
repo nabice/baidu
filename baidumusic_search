@@ -11,12 +11,13 @@ def usage():
     sys.stderr.write("   -a    list not only first item but all result\n")
     sys.stderr.write("Report bugs to <nabice@163.com>\n")
     sys.exit(1)
-if len(sys.argv) != 2 and len(sys.argv) != 3:
+if len(sys.argv) < 2:
     usage()
 listall = False
-keyword = urllib.urlencode({'word':sys.argv[1]})
-if len(sys.argv) == 3 and sys.argv[2] == '-a':
+if sys.argv[len(sys.argv) - 1] == '-a':
     listall = True
+    sys.argv = sys.argv[:-1]
+keyword = urllib.urlencode({'word':" ".join(sys.argv[1:])})
 
 result = urllib2.urlopen("http://sug.music.baidu.com/info/suggestion?format=json&"+keyword+"&version=2&from=0&callback=filter&third_type=0&client_type=0").read()
 songList = json.loads(re.search("filter\((.*)\);", result).group(1))["data"]["song"]
