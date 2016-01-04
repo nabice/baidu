@@ -1,0 +1,32 @@
+#!/usr/bin/env python
+
+import sys
+import urllib2
+import urllib
+import re
+import json
+
+def usage():
+    sys.stderr.write("Usage: "+__file__+"  KEYWORD [OPTION]\n")
+    sys.stderr.write("   -a    list not only first item but all result\n")
+    sys.stderr.write("Report bugs to <nabice@163.com>\n")
+    sys.exit(1)
+if len(sys.argv) != 2 and len(sys.argv) != 3:
+    usage()
+listall = False
+keyword = urllib.urlencode({'word':sys.argv[1]})
+if len(sys.argv) == 3 and sys.argv[2] == '-a':
+    listall = True
+
+result = urllib2.urlopen("http://sug.music.baidu.com/info/suggestion?format=json&"+keyword+"&version=2&from=0&callback=filter&third_type=0&client_type=0").read()
+songList = json.loads(re.search("filter\((.*)\);", result).group(1))["data"]["song"]
+if len(songList) > 0:
+    for song in songList:
+        print song["songid"]
+        if not listall:
+            break
+        else:
+            sys.stderr.write(song["artistname"] + " " + song["songname"] + "\n");
+            
+else:
+    sys.stderr.write("Nothing found\n")
