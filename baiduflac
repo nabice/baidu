@@ -22,7 +22,9 @@ if len(sys.argv) == 3 and sys.argv[2] == '-u':
     filetype = 'mp3'
 else:
     filetype = 'flac'
-result = urllib2.urlopen("http://music.baidu.com/data/music/fmlink?songIds="+songid+"&type="+filetype)
+opener = urllib2.build_opener()
+opener.addheaders = [('User-agent', 'curl/7.35.0')]
+result = opener.open("http://music.baidu.com/data/music/fmlink?songIds="+songid+"&type="+filetype)
 data = json.loads(result.read())
 sys.stderr.write("SongID:"+songid+"\n")
 if data['errorCode'] == 22000:
@@ -36,9 +38,13 @@ if len(sys.argv) == 3 and sys.argv[2] == '-u':
     if songLink:
         print songLink
     sys.exit(0)
+if data['data']['songList'][0]['format'] != "flac":
+    sys.stderr.write("Not a flac file\n")
+    sys.exit(1)
+
 filename = FLACPATH + data['data']['songList'][0]['songName'] + "_" + data['data']['songList'][0]['artistName'] + ".flac"
 sys.stderr.write(songLink+"\n")
-songdata = urllib2.urlopen(songLink)
+songdata = opener.open(songLink)
 header = songdata.info()
 sys.stderr.write(filename+"\n")
 print filename.encode("utf8")
