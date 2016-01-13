@@ -1,5 +1,5 @@
 #!/bin/bash
-if [ -z "$*" ]; then
+if [ $# -eq 0 ]; then
     echo "Usage: music  KEYWORD [OPTION]"
     echo "   -a    list all result instead of play the first"
     echo "Report bugs to <nabice@163.com>"
