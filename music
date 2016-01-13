@@ -1,0 +1,21 @@
+#!/bin/bash
+if [ -z "$@" ]; then
+    echo "Usage: music  KEYWORD [OPTION]"
+    echo "   -a    list all result instead of play the first"
+    echo "Report bugs to <nabice@163.com>"
+    exit 1
+fi
+/home/nabice/src/wechat/plugin/3
+SONGID=$(/home/nabice/src/baidumusic_search "$@")
+
+if [ "${@: -1}" = "-a" ]; then
+    exit
+fi
+
+if [ -n "$SONGID" ]; then
+    SONGURL=$(/home/nabice/src/baiduflac $SONGID -u)
+    if [ -n "$SONGURL" ]; then
+        DISPLAY=:0 vlc -f "$SONGURL" --play-and-exit -I rc --rc-host=localhost:50022 -d
+    fi
+fi
+
