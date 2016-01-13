@@ -18,22 +18,30 @@ if not re.match("\d+$", sys.argv[1]):
     usage()
 else:
     songid = sys.argv[1]
-if len(sys.argv) == 3 and sys.argv[2] == '-u':
-    filetype = 'mp3'
-else:
-    filetype = 'flac'
+    sys.stderr.write("SongID:"+songid+"\n")
+
 opener = urllib2.build_opener()
 opener.addheaders = [('User-agent', 'curl/7.35.0')]
-result = opener.open("http://music.baidu.com/data/music/fmlink?songIds="+songid+"&type="+filetype)
-data = json.loads(result.read())
-sys.stderr.write("SongID:"+songid+"\n")
-if data['errorCode'] == 22000:
-    songLink = data['data']['songList'][0]['songLink']
-else:
-    songLink = ''
+def get_song_link(songid, filetype):
+    result = opener.open("http://music.baidu.com/data/music/fmlink?songIds="+songid+"&type="+filetype)
+    data = json.loads(result.read())
+    if data['errorCode'] == 22000:
+        songLink = data['data']['songList'][0]['songLink']
+    else:
+        songLink = ''
+    return songLink
+
+songLink = get_song_link(songid, 'flac')
 if not songLink:
     sys.stderr.write("No flac found\n")
-    sys.exit(1)
+    if len(sys.argv) == 3 and sys.argv[2] == '-u':
+        sys.stderr.write("Try MP3 ...\n")
+        songLink = get_song_link(songid, 'mp3')
+        if not songLink:
+            sys.stderr.write("No mp3 found\n")
+            sys.exit(1)
+    else:
+        sys.exit(1)
 if len(sys.argv) == 3 and sys.argv[2] == '-u':
     if songLink:
         print songLink
