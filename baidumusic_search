@@ -21,13 +21,17 @@ keyword = urllib.urlencode({'word':" ".join(sys.argv[1:])})
 
 result = urllib2.urlopen("http://sug.music.baidu.com/info/suggestion?format=json&"+keyword+"&version=2&from=0&callback=filter&third_type=0&client_type=0").read()
 songList = json.loads(re.search("filter\((.*)\);", result).group(1))["data"]["song"]
+has_found = False
 if len(songList) > 0:
     for song in songList:
+        if song["resource_provider"] == "2":
+            continue
+        else:
+            has_found = True
         print song["songid"]
         if not listall:
             break
         else:
             sys.stderr.write(song["artistname"] + " " + song["songname"] + "\n");
-            
-else:
+if not has_found:
     sys.stderr.write("Nothing found\n")
