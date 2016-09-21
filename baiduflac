@@ -22,7 +22,9 @@ else:
 
 opener = urllib2.build_opener()
 opener.addheaders = [('User-agent', 'curl/7.35.0')]
+data = []
 def get_song_link(songid, filetype):
+    global data
     result = opener.open("http://music.baidu.com/data/music/fmlink?songIds="+songid+"&type="+filetype)
     data = json.loads(result.read())
     if data['errorCode'] == 22000:
