@@ -51,7 +51,7 @@ else:
     if isplay:
         subprocess.call("rhythmbox-client",shell=True)
     for song in songsdata['list']:
-        subprocess.call("/home/nabice/src/baiduflac "+str(song['id'])+" | xargs -I % rhythmbox-client --enqueue '%'",shell=True)
+        subprocess.call("/home/nabice/src/baiduflac "+str(song['id'])+" | xargs -0 -I % rhythmbox-client --enqueue '%'",shell=True)
         if isplay:
             subprocess.call("rhythmbox-client --play",shell=True)
             isplay = 0
